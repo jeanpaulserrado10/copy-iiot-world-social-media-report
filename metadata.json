@@ -1,0 +1,8 @@
+{
+  "name": "Copy of IIoT World Report Gen",
+  "description": "A sophisticated social media report generator for IIoT World that transforms campaign data and assets into interactive, brand-aligned presentations.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
