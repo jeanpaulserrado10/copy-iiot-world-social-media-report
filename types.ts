@@ -1,4 +1,3 @@
-
 export interface CampaignMetadata {
   clientName: string;
   campaignName: string;
@@ -13,6 +12,7 @@ export interface ResourceLinks {
   top20XDriveLink: string;
   visualsDriveLink: string;
   shortsDriveLink: string;
+  brandwatchDriveLink: string;
   youtubeLinks: { id: string; url: string; title: string }[];
   articleLinks: { id: string; url: string; title: string; caption: string }[];
   additionalMedia: string;
@@ -69,10 +69,17 @@ export interface CustomSlide {
   fileData?: string;
 }
 
+export interface SlideConfig {
+  id: string;
+  label: string;
+  enabled: boolean;
+}
+
 export interface ReportData {
   metadata: CampaignMetadata;
   resources: ResourceLinks;
   slideTitles: string[];
+  slideSequence: SlideConfig[];
   inventoryVisibleColumns: string[];
   executiveKpiSelection: string[]; // IDs of KPIs to show on slide 2
   summaryOfActivities: string;
@@ -82,6 +89,7 @@ export interface ReportData {
     mentions: string;
     engagement: string;
     rate: string;
+    impressions: string;
   };
   linkedinMetrics: {
     impressions: string;
