@@ -22,19 +22,32 @@
         @media print {
             @page {
                 margin: 0;
-                size: auto;
+                size: landscape;
             }
             body {
                 background-color: white !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
                 overflow: visible !important;
+                width: 100% !important;
             }
-            #root > div > header,
-            #root > div > footer,
-            .print\:hidden {
+            
+            /* Hide all direct children of body except root */
+            body > *:not(#root) {
                 display: none !important;
             }
+
+            #root {
+                display: block !important;
+                width: 100% !important;
+            }
+
+            /* Hide UI elements */
+            header, footer, .print\:hidden {
+                display: none !important;
+            }
+
+            /* Reset main container */
             main {
                 padding: 0 !important;
                 margin: 0 !important;
@@ -42,31 +55,48 @@
                 width: 100% !important;
                 display: block !important;
             }
-            .print-page-break {
+
+            /* Print Container */
+            .print\:block {
                 display: block !important;
                 width: 100% !important;
-                /* Avoid break inside slide content */
-                break-inside: avoid;
-                page-break-inside: avoid;
             }
-            /* Only break after if it's not the last slide to prevent blank pages */
-            .print-page-break:not(:last-child) {
-                page-break-after: always !important;
-                break-after: page !important;
-            }
-            /* Ensure buttons don't have weird dark shadows in print */
-            * {
-                box-shadow: none !important;
-                text-shadow: none !important;
-            }
-            /* Removed color: inherit !important to keep button text white */
-            a {
-                text-decoration: none !important;
-            }
+
             .print-content-container {
                 width: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
+            }
+
+            /* Slide Page Breaks */
+            .print-page-break {
+                display: flex !important;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                width: 100% !important;
+                height: 100vh !important;
+                page-break-after: always !important;
+                break-after: page !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                overflow: hidden !important;
+                position: relative !important;
+            }
+            
+            .print-page-break:last-child {
+                page-break-after: auto !important;
+                break-after: auto !important;
+            }
+
+            /* Reset styles */
+            * {
+                box-shadow: none !important;
+                text-shadow: none !important;
+            }
+            
+            a {
+                text-decoration: none !important;
             }
         }
 
@@ -88,16 +118,18 @@
     "@google/genai": "https://esm.sh/@google/genai@^1.38.0",
     "react/": "https://esm.sh/react@^19.2.4/",
     "react": "https://esm.sh/react@^19.2.4",
-    "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
-    "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
-    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
-    "firebase/storage": "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js",
-    "firebase/": "https://esm.sh/firebase@^12.8.0/"
+    "firebase/app": "https://esm.sh/firebase@11.0.2/app",
+    "firebase/auth": "https://esm.sh/firebase@11.0.2/auth",
+    "firebase/firestore": "https://esm.sh/firebase@11.0.2/firestore",
+    "firebase/storage": "https://esm.sh/firebase@11.0.2/storage",
+    "firebase/": "https://esm.sh/firebase@11.0.2/"
   }
 }
 </script>
+<link rel="stylesheet" href="/index.css">
 </head>
 <body>
     <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>

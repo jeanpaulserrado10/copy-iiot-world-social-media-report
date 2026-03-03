@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 
 export class GeminiService {
@@ -38,6 +39,7 @@ export class GeminiService {
          - Comments
          - Clicks
          - Reposts
+         - Views (Look for "Views", "Video Views", or similar columns. If N/A, use 0)
          - Post Link (URL)
 
       3. Newsletter & Articles Analysis: Identify posts that are categorized as "Article".
@@ -67,6 +69,7 @@ export class GeminiService {
           "comments": number,
           "clicks": number,
           "reposts": number,
+          "views": number,
           "link": "string" 
         }],
         "newsletterAnalysis": {
