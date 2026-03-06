@@ -9,6 +9,7 @@ import StepProgressBar from './components/StepProgressBar';
 import PresentationView from './components/PresentationView';
 import LoginView from './components/LoginView';
 import DashboardView from './components/DashboardView';
+import ViewerLoginView from './components/ViewerLoginView';
 import BasicsStep from './components/editor/BasicsStep';
 import ResourcesStep from './components/editor/ResourcesStep';
 import DataUploadStep from './components/editor/DataUploadStep';
@@ -49,6 +50,8 @@ const MainApp = () => {
   const [saveStatus, setSaveStatus] = useState<string>('');
   const [editorTab, setEditorTab] = useState<'structure' | 'executive' | 'metrics' | 'content' | 'tools'>('structure');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [isViewerAuthenticated, setIsViewerAuthenticated] = useState(false);
+  const [viewerCredentials, setViewerCredentials] = useState<{ id: string; pass: string } | null>(null);
   
   const [previousReports, setPreviousReports] = useState<ReportMetadata[]>([]);
   const [selectedReportIds, setSelectedReportIds] = useState<string[]>([]);
@@ -78,7 +81,21 @@ const MainApp = () => {
           if (data) {
             setReportData(data);
             setCurrentReportId(reportId);
-            setViewMode('viewer');
+            
+            // Check if category has credentials
+            if (data.categoryId) {
+                const category = await FirebaseService.getCategory(data.categoryId);
+                if (category && category.viewerId && category.viewerPassword) {
+                    setViewerCredentials({ id: category.viewerId, pass: category.viewerPassword });
+                    setViewMode('viewer');
+                } else {
+                    setIsViewerAuthenticated(true);
+                    setViewMode('viewer');
+                }
+            } else {
+                setIsViewerAuthenticated(true);
+                setViewMode('viewer');
+            }
           } else {
             alert("Report not found.");
             setViewMode('login');
@@ -519,7 +536,19 @@ service firebase.storage {
       </div>
     </div>
   );
-  if (viewMode === 'viewer' && reportData) return <PresentationView data={reportData} reportId={currentReportId || undefined} />;
+  if (viewMode === 'viewer' && reportData) {
+    if (viewerCredentials && !isViewerAuthenticated) {
+        return (
+            <ViewerLoginView 
+                viewerId={viewerCredentials.id}
+                viewerPassword={viewerCredentials.pass}
+                clientName={reportData.metadata.clientName}
+                onAuthenticated={() => setIsViewerAuthenticated(true)}
+            />
+        );
+    }
+    return <PresentationView data={reportData} reportId={currentReportId || undefined} />;
+  }
   if (viewMode === 'login') return <LoginView />;
   if (viewMode === 'dashboard' && user) return <DashboardView user={user} onNewReport={handleNewReport} onLoadReport={handleLoadReport} />;
 

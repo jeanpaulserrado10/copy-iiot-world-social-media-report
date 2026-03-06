@@ -60,44 +60,112 @@ const PresentationView: React.FC<PresentationViewProps> = ({ data, onBackToEdit,
       }
 
       try {
+          // Initialize PDF without default format/orientation as we'll set per page
           const doc = new jsPDF({
-              orientation: 'landscape',
               unit: 'px',
-              format: [1280, 720],
               hotfixes: ['px_scaling']
           });
+
+          // Remove the initial page created by default
+          doc.deletePage(1);
 
           const slides = Array.from(pdfContainerRef.current.children) as HTMLElement[];
           
           for (let i = 0; i < slides.length; i++) {
-              const slide = slides[i];
+              const slideContainer = slides[i];
+              // Get the actual content wrapper inside the slide container
+              const contentWrapper = slideContainer.firstElementChild as HTMLElement;
               
-              // Capture
-              const canvas = await html2canvas(slide, {
+              if (!contentWrapper) continue;
+
+              // Calculate actual height needed
+              // We use scrollHeight to get the full height of content including overflow
+              const actualHeight = contentWrapper.scrollHeight;
+              const width = 1280;
+              // Add a 50px buffer to prevent bottom text cutoff
+              const height = Math.max(720, actualHeight + 50); 
+
+              // Capture with dynamic height
+              const canvas = await html2canvas(contentWrapper, {
                   scale: 2, // Better quality
                   useCORS: true,
                   logging: false,
-                  width: 1280,
-                  height: 720,
-                  windowWidth: 1280,
-                  windowHeight: 720,
+                  letterRendering: true, // Helps with text rendering
+                  width: width,
+                  height: height,
+                  windowWidth: width,
+                  windowHeight: height,
                   backgroundColor: '#ffffff',
                   onclone: (clonedDoc) => {
-                      // Fix for some elements not rendering correctly
                       const elements = clonedDoc.querySelectorAll('*');
                       elements.forEach((el: any) => {
                           if (el.style) {
                               el.style.animation = 'none';
                               el.style.transition = 'none';
+                              el.style.boxShadow = 'none'; // Remove shadows which can look weird
                           }
+                      });
+
+                      // Force fix button centering
+                      const buttons = clonedDoc.querySelectorAll('a[href], button');
+                      buttons.forEach((btn: any) => {
+                          btn.style.display = 'flex';
+                          btn.style.justifyContent = 'center';
+                          btn.style.alignItems = 'center';
+                          btn.style.textAlign = 'center';
+                          btn.style.transform = 'none'; // Remove transforms
                       });
                   }
               });
 
               const imgData = canvas.toDataURL('image/png');
               
-              if (i > 0) doc.addPage([1280, 720], 'landscape');
-              doc.addImage(imgData, 'PNG', 0, 0, 1280, 720);
+              // Add page with the specific dimensions of this slide
+              doc.addPage([width, height], height > width ? 'portrait' : 'landscape');
+              doc.addImage(imgData, 'PNG', 0, 0, width, height);
+
+              // --- ADD LINKS ---
+              // We need to find clickable elements in the original DOM (contentWrapper)
+              // and map their positions to the PDF.
+              
+              // Helper to add link
+              const addLinkToPdf = (element: HTMLElement, url: string) => {
+                  const rect = element.getBoundingClientRect();
+                  const wrapperRect = contentWrapper.getBoundingClientRect();
+                  
+                  // Calculate relative position inside the slide
+                  const x = rect.left - wrapperRect.left;
+                  const y = rect.top - wrapperRect.top;
+                  const w = rect.width;
+                  const h = rect.height;
+
+                  // Add link to PDF (coordinates are in the same unit as the page, which is 'px' here)
+                  doc.link(x, y, w, h, { url });
+              };
+
+              // 1. Find <a> tags with href
+              const links = contentWrapper.querySelectorAll('a[href]');
+              links.forEach((link) => {
+                  const href = link.getAttribute('href');
+                  if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
+                      addLinkToPdf(link as HTMLElement, href);
+                  }
+              });
+
+              // 2. Find buttons that might be links (e.g. "View Full Report")
+              // In our app, some buttons use onClick to navigate or window.open. 
+              // We can't easily extract the URL from onClick, BUT we can look for specific data attributes 
+              // or known button structures if we update the components to expose the URL.
+              //
+              // STRATEGY: We will look for elements with `data-pdf-link` attribute.
+              // This requires updating the slide renderers to add this attribute to clickable buttons.
+              const customLinkedButtons = contentWrapper.querySelectorAll('[data-pdf-link]');
+              customLinkedButtons.forEach((btn) => {
+                  const url = btn.getAttribute('data-pdf-link');
+                  if (url) {
+                      addLinkToPdf(btn as HTMLElement, url);
+                  }
+              });
           }
 
           doc.save(`${displayData.metadata.campaignName || 'Report'}.pdf`);
@@ -146,7 +214,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ data, onBackToEdit,
             }}
         >
             {activeConfigs.map((config: any, idx: number) => (
-                <div key={config.id} style={{ width: '1280px', height: '720px', overflow: 'hidden', background: 'white' }}>
+                <div key={config.id} style={{ width: '1280px', minHeight: '720px', height: 'auto', overflow: 'visible', background: 'white' }}>
                     <SlideWrapper 
                         title={config.id === 'thank_you' ? undefined : config.label} 
                         noContainer={config.id === 'thank_you'}

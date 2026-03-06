@@ -88,7 +88,7 @@ const CustomSlideRenderer: React.FC<CustomSlideProps> = ({ custom }) => {
                          <div className={`text-sm font-black uppercase tracking-tighter ${lnk ? 'text-[#e64d25]' : 'text-[#283b82]'}`}>{txt}</div>
                     </div>
                  );
-                 return lnk ? <a key={idx} href={lnk} target="_blank">{content}</a> : content;
+                  return lnk ? <a key={idx} href={lnk} target="_blank" data-pdf-link={lnk}>{content}</a> : content;
               })}
            </div>
         </div>
@@ -117,7 +117,7 @@ const CustomSlideRenderer: React.FC<CustomSlideProps> = ({ custom }) => {
             {custom.buttons && (
                <div className="flex flex-wrap gap-4 shrink-0">
                   {custom.buttons.map((btn, idx) => (
-                     <a key={idx} href={btn.link} target="_blank" className="px-8 py-4 bg-[#283b82] text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-[#e64d25] transition-colors shadow-xl">
+                     <a key={idx} href={btn.link} target="_blank" data-pdf-link={btn.link} className="px-8 py-4 bg-[#283b82] text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-[#e64d25] transition-colors shadow-xl">
                        <Icon type="GLOBE" className="w-4 h-4" /> {btn.text}
                      </a>
                   ))}
@@ -142,12 +142,12 @@ const CustomSlideRenderer: React.FC<CustomSlideProps> = ({ custom }) => {
                        <div className={`text-sm font-black uppercase tracking-tighter ${item.link ? 'text-[#e64d25] underline decoration-2 underline-offset-4' : 'text-[#283b82]'}`}>{item.text}</div>
                     </div>
                   );
-                  return item.link ? <a key={idx} href={item.link} target="_blank" className="block">{Content}</a> : Content;
+                  return item.link ? <a key={idx} href={item.link} target="_blank" className="block" data-pdf-link={item.link}>{Content}</a> : Content;
                 })}
               </div>
               <p className="text-xs text-gray-600 leading-relaxed font-medium italic border-l-4 border-gray-100 pl-4 mb-6 whitespace-pre-line flex-grow">{custom.content}</p>
               {custom.buttons && custom.buttons.map((btn, idx) => (
-                <a key={idx} href={btn.link} target="_blank" className="inline-flex items-center gap-3 px-8 py-4 bg-[#283b82] text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center transition-all shadow-2xl">
+                <a key={idx} href={btn.link} target="_blank" data-pdf-link={btn.link} className="inline-flex items-center gap-3 px-8 py-4 bg-[#283b82] text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center transition-all shadow-2xl">
                   <Icon type="DOCS" className="w-5 h-5" />
                   {btn.text}
                 </a>
@@ -396,13 +396,13 @@ const CustomSlideRenderer: React.FC<CustomSlideProps> = ({ custom }) => {
            {/* Action Area */}
            <div className="flex justify-center gap-4 mt-auto shrink-0 pt-2">
               {custom.link && (
-                <a href={custom.link} target="_blank" className="px-12 py-5 bg-[#283b82] text-white rounded-[2rem] text-center shadow-2xl font-black uppercase text-xs tracking-widest flex items-center gap-3 hover:scale-105 transition-transform">
+                <a href={custom.link} target="_blank" data-pdf-link={custom.link} className="px-12 py-5 bg-[#283b82] text-white rounded-[2rem] text-center shadow-2xl font-black uppercase text-xs tracking-widest flex items-center gap-3 hover:scale-105 transition-transform">
                    <Icon type="GLOBE" className="w-4 h-4" />
                    {custom.linkText || 'View Resource'}
                 </a>
               )}
               {custom.buttons && custom.buttons.map((btn, i) => (
-                 <a key={i} href={btn.link} target="_blank" className="px-12 py-5 bg-[#283b82] text-white rounded-[2rem] text-center shadow-2xl font-black uppercase text-xs tracking-widest flex items-center gap-3 hover:scale-105 transition-transform">
+                 <a key={i} href={btn.link} target="_blank" data-pdf-link={btn.link} className="px-12 py-5 bg-[#283b82] text-white rounded-[2rem] text-center shadow-2xl font-black uppercase text-xs tracking-widest flex items-center gap-3 hover:scale-105 transition-transform">
                    <Icon type="GLOBE" className="w-4 h-4" />
                    {btn.text}
                  </a>

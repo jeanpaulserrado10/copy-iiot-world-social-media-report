@@ -26,7 +26,7 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({ children, title, noContaine
   }, [activeSlide]);
 
   return (
-    <div className={`w-full ${!isPrint && !isPdf ? 'h-[80vh] min-h-[600px] max-h-[900px]' : isPdf ? 'min-h-[720px] h-full' : 'min-h-[1050px]'} ${noContainer ? '' : 'bg-white rounded-xl shadow-2xl border-t-8 border-[#e64d25]'} overflow-hidden flex flex-col ${isPrint ? 'print:shadow-none print:border-none print:m-0 print:border-t-iiot-orange print:h-auto' : ''}`}>
+    <div className={`w-full ${!isPrint && !isPdf ? 'h-[80vh] min-h-[600px] max-h-[900px]' : isPdf ? 'min-h-[720px] h-auto' : 'min-h-[1050px]'} ${noContainer ? '' : 'bg-white rounded-xl shadow-2xl border-t-8 border-[#e64d25]'} ${isPdf ? 'overflow-visible' : 'overflow-hidden'} flex flex-col ${isPrint ? 'print:shadow-none print:border-none print:m-0 print:border-t-iiot-orange print:h-auto' : ''}`}>
        {!noContainer && (
          <div className="px-8 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
             <div className="flex items-center gap-2">

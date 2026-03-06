@@ -276,6 +276,20 @@ export class FirebaseService {
     await updateDoc(reportRef, { categoryId: categoryId });
   }
 
+  static async getCategory(categoryId: string): Promise<Category | null> {
+    try {
+        const docRef = doc(db, 'categories', categoryId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return { id: docSnap.id, ...docSnap.data() } as Category;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error in getCategory:", error);
+        throw error;
+    }
+  }
+
   static async getCategories(userId?: string): Promise<Category[]> {
     console.log("Fetching categories. UserId filter:", userId || "ALL");
     try {
@@ -307,13 +321,23 @@ export class FirebaseService {
     }
   }
 
-  static async saveCategory(userId: string, name: string): Promise<string> {
+  static async saveCategory(userId: string, name: string, viewerId?: string, viewerPassword?: string): Promise<string> {
     const docRef = await addDoc(collection(db, 'categories'), {
       name,
       userId,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
+      viewerId: viewerId || null,
+      viewerPassword: viewerPassword || null
     });
     return docRef.id;
+  }
+
+  static async updateCategory(categoryId: string, data: Partial<Category>) {
+    const docRef = doc(db, 'categories', categoryId);
+    await updateDoc(docRef, {
+      ...data,
+      updatedAt: serverTimestamp()
+    });
   }
 
   static async deleteCategory(categoryId: string) {

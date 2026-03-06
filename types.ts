@@ -152,6 +152,8 @@ export interface Category {
   name: string;
   userId: string;
   createdAt: any;
+  viewerId?: string;
+  viewerPassword?: string;
 }
 
 export enum ReportStep {

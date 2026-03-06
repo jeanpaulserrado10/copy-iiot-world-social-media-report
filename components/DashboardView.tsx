@@ -16,7 +16,10 @@ const DashboardView: React.FC<DashboardViewProps> = ({ onNewReport, onLoadReport
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [newViewerId, setNewViewerId] = useState('');
+  const [newViewerPassword, setNewViewerPassword] = useState('');
   const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const { logout } = useAuth();
 
   const fetchData = async () => {
@@ -54,9 +57,23 @@ const DashboardView: React.FC<DashboardViewProps> = ({ onNewReport, onLoadReport
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCategoryName.trim()) return;
-    await FirebaseService.saveCategory(user.uid, newCategoryName.trim());
+    await FirebaseService.saveCategory(user.uid, newCategoryName.trim(), newViewerId.trim(), newViewerPassword.trim());
     setNewCategoryName('');
+    setNewViewerId('');
+    setNewViewerPassword('');
     setIsAddingCategory(false);
+    fetchData();
+  };
+
+  const handleUpdateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCategory || !editingCategory.name.trim()) return;
+    await FirebaseService.updateCategory(editingCategory.id, {
+      name: editingCategory.name.trim(),
+      viewerId: editingCategory.viewerId?.trim() || null,
+      viewerPassword: editingCategory.viewerPassword?.trim() || null
+    });
+    setEditingCategory(null);
     fetchData();
   };
 
@@ -170,16 +187,91 @@ const DashboardView: React.FC<DashboardViewProps> = ({ onNewReport, onLoadReport
           </div>
 
           {isAddingCategory && (
-             <form onSubmit={handleAddCategory} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex gap-4 animate-fadeIn">
-                <input 
-                   autoFocus
-                   className="flex-grow p-3 bg-gray-50 rounded-xl outline-none border-2 border-transparent focus:border-iiot-orange font-bold text-sm"
-                   placeholder="e.g. Client Name or Project Type"
-                   value={newCategoryName}
-                   onChange={e => setNewCategoryName(e.target.value)}
-                />
-                <button type="submit" className="px-6 py-3 bg-[#e64d25] text-white font-black text-xs uppercase rounded-xl">Create</button>
-                <button type="button" onClick={() => setIsAddingCategory(false)} className="px-6 py-3 text-gray-400 font-black text-xs uppercase">Cancel</button>
+             <form onSubmit={handleAddCategory} className="bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100 space-y-6 animate-fadeIn">
+                <div className="flex justify-between items-center">
+                   <h3 className="text-sm font-black text-[#283b82] uppercase tracking-widest">Create New Collection</h3>
+                   <button type="button" onClick={() => setIsAddingCategory(false)} className="text-gray-400 hover:text-gray-600">
+                      <Icon type="CLOSE" className="w-5 h-5" />
+                   </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Collection Name</label>
+                      <input 
+                         autoFocus
+                         className="w-full p-4 bg-gray-50 rounded-2xl outline-none border-2 border-transparent focus:border-[#e64d25] font-bold text-sm"
+                         placeholder="e.g. Client Name"
+                         value={newCategoryName}
+                         onChange={e => setNewCategoryName(e.target.value)}
+                      />
+                   </div>
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Viewer ID (Optional)</label>
+                      <input 
+                         className="w-full p-4 bg-gray-50 rounded-2xl outline-none border-2 border-transparent focus:border-[#e64d25] font-bold text-sm"
+                         placeholder="Client Username"
+                         value={newViewerId}
+                         onChange={e => setNewViewerId(e.target.value)}
+                      />
+                   </div>
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Viewer Password (Optional)</label>
+                      <input 
+                         type="password"
+                         className="w-full p-4 bg-gray-50 rounded-2xl outline-none border-2 border-transparent focus:border-[#e64d25] font-bold text-sm"
+                         placeholder="Client Password"
+                         value={newViewerPassword}
+                         onChange={e => setNewViewerPassword(e.target.value)}
+                      />
+                   </div>
+                </div>
+                <div className="flex justify-end gap-4">
+                   <button type="button" onClick={() => setIsAddingCategory(false)} className="px-8 py-4 text-gray-400 font-black text-xs uppercase tracking-widest">Cancel</button>
+                   <button type="submit" className="px-12 py-4 bg-[#e64d25] text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-orange-200">Create Collection</button>
+                </div>
+             </form>
+          )}
+
+          {editingCategory && (
+             <form onSubmit={handleUpdateCategory} className="bg-white p-8 rounded-[2rem] shadow-xl border border-[#283b82]/20 space-y-6 animate-fadeIn">
+                <div className="flex justify-between items-center">
+                   <h3 className="text-sm font-black text-[#283b82] uppercase tracking-widest">Edit Collection: {editingCategory.name}</h3>
+                   <button type="button" onClick={() => setEditingCategory(null)} className="text-gray-400 hover:text-gray-600">
+                      <Icon type="CLOSE" className="w-5 h-5" />
+                   </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Collection Name</label>
+                      <input 
+                         autoFocus
+                         className="w-full p-4 bg-gray-50 rounded-2xl outline-none border-2 border-transparent focus:border-[#e64d25] font-bold text-sm"
+                         value={editingCategory.name}
+                         onChange={e => setEditingCategory({...editingCategory, name: e.target.value})}
+                      />
+                   </div>
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Viewer ID</label>
+                      <input 
+                         className="w-full p-4 bg-gray-50 rounded-2xl outline-none border-2 border-transparent focus:border-[#e64d25] font-bold text-sm"
+                         value={editingCategory.viewerId || ''}
+                         onChange={e => setEditingCategory({...editingCategory, viewerId: e.target.value})}
+                      />
+                   </div>
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Viewer Password</label>
+                      <input 
+                         type="password"
+                         className="w-full p-4 bg-gray-50 rounded-2xl outline-none border-2 border-transparent focus:border-[#e64d25] font-bold text-sm"
+                         value={editingCategory.viewerPassword || ''}
+                         onChange={e => setEditingCategory({...editingCategory, viewerPassword: e.target.value})}
+                      />
+                   </div>
+                </div>
+                <div className="flex justify-end gap-4">
+                   <button type="button" onClick={() => setEditingCategory(null)} className="px-8 py-4 text-gray-400 font-black text-xs uppercase tracking-widest">Cancel</button>
+                   <button type="submit" className="px-12 py-4 bg-[#283b82] text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-blue-200">Save Changes</button>
+                </div>
              </form>
           )}
 
@@ -200,9 +292,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({ onNewReport, onLoadReport
                       <div key={cat.id} className="space-y-6">
                          <div className="flex justify-between items-center border-b pb-2">
                             <h3 className="text-sm font-black text-[#283b82] uppercase tracking-widest flex items-center gap-2">
-                               <Icon type="DOCS" className="w-4 h-4 text-[#e64d25]" /> {cat.name}
+                               <Icon type="DOCS" className="w-4 h-4 text-[#e64d25]" /> {cat.name} {cat.viewerId && <span className="ml-2 px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-[8px] font-black uppercase inline-flex items-center gap-1"><Icon type="LOCK" className="w-2 h-2" /> Protected</span>}
                             </h3>
-                            <button onClick={(e) => handleDeleteCategory(e, cat.id)} className="text-[10px] text-red-400 hover:text-red-600 font-bold uppercase">Delete Collection</button>
+                            <button onClick={() => setEditingCategory(cat)} className="text-[10px] text-blue-400 hover:text-blue-600 font-bold uppercase mr-4">Edit Settings</button><button onClick={(e) => handleDeleteCategory(e, cat.id)} className="text-[10px] text-red-400 hover:text-red-600 font-bold uppercase">Delete Collection</button>
                          </div>
                          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             {reports.filter(r => r.categoryId === cat.id).map(report => renderReportCard(report))}
